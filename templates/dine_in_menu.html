@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dine-In Menu - Brew & Bite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+      body { font-family: 'Plus Jakarta Sans', sans-serif; }
+      .menu-card {
+          cursor: pointer;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      }
+      .menu-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .toast {
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background-color: #0D1C17;
+        color: white;
+        border-radius: 999px;
+        font-weight: bold;
+        transition: bottom 0.5s ease-in-out;
+        z-index: 100;
+      }
+      .toast.show {
+          bottom: 30px;
+      }
+      .floating-cart-button {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          background-color: #009963;
+          color: white;
+          padding: 1rem;
+          border-radius: 50%;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.3s ease;
+          z-index: 1000;
+      }
+      .floating-cart-button:hover {
+          transform: scale(1.1);
+      }
+      .cart-count {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background-color: #ef4444;
+          color: white;
+          font-size: 12px;
+          font-weight: bold;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+  </style>
+</head>
+<body class="bg-[#F7FCFA] font-sans text-[#0D1C17]">
+
+  <nav class="w-full border-b border-[#E5E8EB] px-10 py-3 flex justify-between items-center bg-white sticky top-0 z-50">
+    <a href="{{ url_for('home') }}" class="flex items-center gap-4">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="w-8 h-8"/>
+      <h1 class="text-xl font-bold">BREW & BITE</h1>
+    </a>
+    <div class="flex items-center gap-8 text-sm font-medium">
+        <a href="{{ url_for('offline_table_booking') }}" class="hover:text-[#009963]">Book a Table</a>
+        {% if user_email %}
+            <span class="text-gray-600">Welcome, {{ user_name }}</span>
+            <a href="{{ url_for('logout') }}" class="hover:text-[#009963]">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="hover:text-[#009963]">Login</a>
+        {% endif %}
+    </div>
+  </nav>
+
+  <div class="max-w-screen-xl mx-auto px-6 mt-6">
+    <label class="block text-sm font-semibold mb-2">Enter Your Name (for announcements):</label>
+    <input id="dineInUserName" 
+           type="text" 
+           placeholder="Your name here"
+           value="{{ user_name or '' }}"
+           class="border border-gray-300 rounded-md px-3 py-2 w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-[#009963]" />
+  </div>
+
+  <main class="max-w-screen-xl mx-auto px-6 py-10">
+    
+    <section id="specials" class="mb-16">
+        <div class="text-center">
+            <h1 class="text-5xl font-extrabold mb-2">Chef's Picks for Today</h1>
+            <p id="specials-context" class="text-gray-500">Loading recommendations based on today's weather...</p>
+        </div>
+        <div id="specials-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            </div>
+    </section>
+
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-extrabold mb-2">Our Full Menu</h1>
+        <p class="text-gray-500">Tap any item to add it to your table's order.</p>
+    </div>
+
+    <div class="space-y-16">
+        <section id="breakfast">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-[#009963] pl-4">Breakfast</h2>
+            <div id="breakfast-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+        <section id="lunch">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-[#009963] pl-4">Lunch</h2>
+            <div id="lunch-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+        <section id="dinner">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-[#009963] pl-4">Dinner</h2>
+            <div id="dinner-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
+        
+        <section id="drinks">
+            <h2 class="text-3xl font-bold mb-6 border-l-4 border-[#009963] pl-4">Drinks</h2>
+            <div id="drinks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
+    </div>
+  </main>
+  
+  <div id="toast-notification" class="toast"></div>
+
+  <a href="{{ url_for('table_order') }}" id="floating-cart" class="floating-cart-button">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      <span id="cart-count" class="cart-count">0</span>
+  </a>
+
+  <script>
+    const cartCountElem = document.getElementById('cart-count');
+
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem("dineInCart")) || [];
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountElem.textContent = totalItems;
+    }
+
+    function addToDineInCart(itemObject) {
+        let cart = JSON.parse(localStorage.getItem("dineInCart")) || [];
+        const existingItem = cart.find(cartItem => cartItem.id === itemObject.id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({ 
+                id: itemObject.id,
+                name: itemObject.name,
+                price: itemObject.price,
+                quantity: 1 
+            });
+        }
+        localStorage.setItem("dineInCart", JSON.stringify(cart));
+        showToast(`${itemObject.name} added to your table's order!`);
+        updateCartCount();
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById('toast-notification');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+    }
+
+    const dineInUserNameInput = document.getElementById("dineInUserName");
+    
+    // Save user name to localStorage on input
+    dineInUserNameInput.addEventListener("input", (e) => {
+        localStorage.setItem("dineInUserName", e.target.value);
+    });
+
+    // --- Dynamic Menu Loading ---
+    function createMenuCard(item) {
+        let priceHTML = `<p class="text-xl font-bold text-gray-800">₹${item.price}</p>`;
+        if (item.price_reason) {
+            priceHTML = `
+                <div class="flex items-center gap-2">
+                    <p class="text-xl font-bold text-green-600">₹${item.price}</p>
+                    <p class="text-md font-medium text-gray-500 line-through">₹${item.original_price}</p>
+                </div>`;
+        }
+        let reasonBadge = item.price_reason ? `<span class="text-xs font-bold bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">${item.price_reason}</span>` : '';
+
+        // We need to escape quotes in the item object for the onclick attribute
+        const itemJsonString = JSON.stringify(item).replace(/'/g, "&apos;");
+
+        return `
+            <div class="menu-card bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col" onclick='addToDineInCart(${itemJsonString})'>
+                <img src="${item.image_url}" alt="${item.name}" class="w-full h-40 object-cover rounded-md mb-4"/>
+                <h3 class="text-lg font-bold mb-1">${item.name}</h3>
+                <p class="text-gray-600 text-sm mb-4 flex-grow">${item.description}</p>
+                <div class="flex justify-between items-center mt-auto pt-4 border-t">
+                    ${priceHTML}
+                    ${reasonBadge}
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadMenuCategory(category, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '<p class="text-gray-500">Loading...</p>';
+        try {
+            const response = await fetch(`/api/menu/${category}`);
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+                container.innerHTML = data.items.map(createMenuCard).join('');
+            } else {
+                container.innerHTML = '<p class="text-gray-500">No items in this category.</p>';
+            }
+        } catch (error) {
+            console.error(`Error loading ${category} menu:`, error);
+            container.innerHTML = '<p class="text-red-500">Could not load menu.</p>';
+        }
+    }
+
+    // NEW FUNCTION: Load Today's Specials
+    async function loadTodaysSpecials() {
+        const container = document.getElementById('specials-container');
+        const contextElem = document.getElementById('specials-context');
+        try {
+            const response = await fetch('/todays-specials');
+            const data = await response.json();
+            if (data.specials && data.specials.length > 0) {
+                container.innerHTML = data.specials.map(createMenuCard).join('');
+                contextElem.textContent = data.context;
+            } else {
+                document.getElementById('specials').style.display = 'none';
+            }
+        } catch(error) {
+            console.error('Error loading specials:', error);
+            document.getElementById('specials').style.display = 'none';
+        }
+    }
+
+    // Load everything when the page is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTodaysSpecials(); // Load specials first
+        loadMenuCategory('breakfast', 'breakfast-container');
+        loadMenuCategory('lunch', 'lunch-container');
+        loadMenuCategory('dinner', 'dinner-container');
+        loadMenuCategory('drinks', 'drinks-container');
+        updateCartCount();
+
+        // UPDATED: If the name is pre-filled, also save it to localStorage
+        if (dineInUserNameInput.value) {
+            localStorage.setItem("dineInUserName", dineInUserNameInput.value);
+        }
+    });
+  </script>
+</body>
+</html>

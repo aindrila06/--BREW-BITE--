@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sign Up | BREW & BITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-center items-center min-h-screen p-6">
+
+    <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-[#467B8D]">Create Your Account</h1>
+            <p class="text-gray-600 mt-2">Join us to enjoy the best coffee and food.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-md {{ 'bg-red-100 text-red-700' if category == 'error' else 'bg-green-100 text-green-700' }}" role="alert">
+                        <p class="font-bold">{{ message }}</p>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('signup') }}" method="POST" class="space-y-6">
+            
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                <div class="mt-1">
+                    <input id="name" name="name" type="text" required autocomplete="name" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388] sm:text-sm">
+                </div>
+            </div>
+            
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                <div class="mt-1">
+                    <input id="email" name="email" type="email" required autocomplete="email" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388] sm:text-sm">
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <div class="mt-1">
+                    <input id="password" name="password" type="password" required autocomplete="new-password" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388] sm:text-sm">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#FB8388] hover:bg-[#f1696f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FB8388]">
+                    Sign up
+                </button>
+            </div>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-600">
+            Already have an account?
+            <a href="{{ url_for('login') }}" class="font-medium text-[#467B8D] hover:text-[#3b6574]">
+                Log in
+            </a>
+        </p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BREW & BITE | Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .sentiment-positive { border-left: 4px solid #4ade80; }
+    .sentiment-negative { border-left: 4px solid #f87171; }
+    .sentiment-neutral { border-left: 4px solid #94a3b8; }
+    
+    /* Shimmer loading effect for the AI special */
+    .shimmer {
+        background: #f6f7f8;
+        background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-repeat: no-repeat;
+        background-size: 800px 104px; 
+        display: inline-block;
+        position: relative; 
+        animation: shimmer 1.2s linear infinite;
+    }
+    @keyframes shimmer {
+        0%{ background-position: -468px 0; }
+        100%{ background-position: 468px 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-[#467B8D] to-[#FB8388] text-white">
+
+  <header class="w-full px-10 py-3 border-b border-[#F9FCFF] flex justify-between items-center">
+    <div class="flex items-center gap-4" data-aos="fade-right">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BREW & BITE Logo" class="w-10 h-10 object-cover" />
+      <h1 class="text-lg font-bold">BREW & BITE</h1>
+    </div>
+    <nav class="flex gap-8 text-sm font-medium" data-aos="fade-down">
+      <a href="{{ url_for('home') }}" class="hover:underline">Home</a>
+      <a href="{{ url_for('main_menu') }}" class="hover:underline">Menu</a>
+    </nav>
+    <div class="flex items-center gap-4" data-aos="fade-left">
+        <a href="{{ url_for('add_to_cart') }}">
+            <button class="bg-[#FB8388] px-4 py-2 rounded-full font-bold text-sm hover:opacity-90 transition">
+                Cart
+            </button>
+        </a>
+        <a href="{{ url_for('logout') }}">
+            <button class="bg-white/20 px-4 py-2 rounded-full font-bold text-sm hover:bg-white/30 transition">
+                Logout
+            </button>
+        </a>
+    </div>
+    </header>
+
+  <section id="ai-special-section" class="max-w-4xl mx-auto pt-16 px-6" data-aos="fade-up">
+    <h2 id="ai-special-title" class="text-3xl font-extrabold mb-2 text-center">Today's AI-Generated Special</h2>
+    <p id="ai-special-subtitle" class="text-center text-white/80 mb-8">A unique dish, created just for today by our digital chef!</p>
+    
+    <div id="ai-special-container" class="bg-white/20 backdrop-blur-lg rounded-2xl shadow-xl flex flex-col md:flex-row items-center p-6 gap-6 min-h-[250px]">
+        <div class="w-full md:w-1/3 h-48 md:h-full rounded-lg shimmer"></div>
+        <div class="w-full md:w-2/3">
+            <div class="h-8 w-3/4 rounded shimmer mb-4"></div>
+            <div class="h-4 w-full rounded shimmer mb-2"></div>
+            <div class="h-4 w-5/6 rounded shimmer mb-6"></div>
+            <div class="h-10 w-1/3 rounded-full shimmer"></div>
+        </div>
+    </div>
+  </section>
+
+
+  <section class="text-center max-w-3xl mx-auto pt-24 px-6" data-aos="zoom-in">
+    <h2 class="text-5xl font-extrabold mb-6">Welcome to BREW & BITE</h2>
+    <p class="text-base font-normal mb-8 leading-relaxed">
+      Taste the difference in every sip and bite. Whether you're starting your day with breakfast or winding down with dinner, we've got something perfect for you.
+    </p>
+    <a href="{{ url_for('main_menu') }}">
+      <button class="bg-[#FB8388] text-white font-bold px-6 py-3 rounded-full hover:opacity-90 transition">
+        Explore Menu
+      </button>
+    </a>
+  </section>
+
+  <section class="mt-24 max-w-3xl mx-auto px-6" data-aos="fade-up">
+    <h2 class="text-3xl font-extrabold mb-6 text-center">What Our Customers Say</h2>
+    <div class="space-y-4">
+        {% if feedback_items and feedback_items|length > 0 %}
+            {% for item in feedback_items %}
+                {% if item.sentiment == 'Positive' %}
+                    <div class="bg-white/10 p-4 rounded-lg shadow-lg sentiment-{{ item.sentiment | lower }}">
+                        <p class="text-white/90 italic">"{{ item.text }}"</p>
+                        <p class="text-xs text-right mt-2 text-white/60">{{ item.timestamp }}</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-white/70">Be the first to leave a review!</p>
+        {% endif %}
+    </div>
+    <div class="text-center mt-8">
+        <a href="{{ url_for('feedback') }}" class="bg-white text-[#467B8D] font-bold px-6 py-3 rounded-full hover:bg-gray-200 transition">
+            Leave Your Feedback
+        </a>
+    </div>
+  </section>
+
+  <section class="mt-24 text-center px-6" data-aos="fade-up">
+    <h2 class="text-3xl font-extrabold mb-4">About Us</h2>
+    <p class="max-w-2xl mx-auto text-sm">
+      At BREW & BITE, we blend passion with perfection. Every item on our menu is curated to satisfy your cravings with flavor and freshness. From artisan coffees to gourmet meals, we believe in delivering joy in every bite and every brew.
+    </p>
+  </section>
+
+  <section class="mt-20 text-center px-6" data-aos="fade-up">
+    <h2 class="text-3xl font-extrabold mb-4">Contact Us</h2>
+    <p class="max-w-md mx-auto text-sm mb-4">
+      Have questions, suggestions, or feedback? Reach out and we’ll be happy to connect.
+    </p>
+    <div class="text-sm">
+      📞 +91 81003 53594 <br />
+      📧 brewbite.team@gmail.com
+    </div>
+  </section>
+
+  <footer class="text-center py-10 mt-12 border-t border-white/20">
+      <p class="text-sm">&copy; 2025 BREW & BITE. All Rights Reserved.</p>
+  </footer>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+
+    // --- AI Special Generation Logic (More Robust Version with Fallback) ---
+    async function displayFallbackSpecial() {
+        const container = document.getElementById('ai-special-container');
+        const title = document.getElementById('ai-special-title');
+        const subtitle = document.getElementById('ai-special-subtitle');
+
+        console.log("AI generation failed. Fetching fallback special.");
+        title.textContent = "Today's Featured Special";
+        subtitle.textContent = "A hand-picked favorite from our chef!";
+
+        try {
+            const response = await fetch('/todays-specials');
+            if (!response.ok) throw new Error('Fallback fetch failed');
+            const data = await response.json();
+            const fallbackItem = data.specials[0];
+
+            container.innerHTML = `
+                <img src="${fallbackItem.image_url}" alt="${fallbackItem.name}" class="w-full md:w-1/3 h-48 md:h-full object-cover rounded-lg"/>
+                <div class="w-full md:w-2/3">
+                    <h3 class="text-2xl font-bold mb-2">${fallbackItem.name}</h3>
+                    <p class="text-white/80 mb-4">${fallbackItem.description}</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xl font-bold">₹${fallbackItem.price}</span>
+                    </div>
+                </div>
+            `;
+        } catch (fallbackError) {
+            console.error("Fallback failed as well:", fallbackError);
+            subtitle.textContent = "Our specials are being updated. Please check back soon!";
+            container.innerHTML = `<p class="text-center w-full text-yellow-300">Could not load any specials at this time.</p>`;
+        }
+    }
+
+    async function generateAiSpecial() {
+        const container = document.getElementById('ai-special-container');
+        const subtitle = document.getElementById('ai-special-subtitle');
+        try {
+            // 1. Get the dynamic prompt from our backend
+            subtitle.textContent = "Asking our digital chef for today's inspiration...";
+            const promptResponse = await fetch('/api/ai-special-prompt');
+            if (!promptResponse.ok) throw new Error('Failed to get prompt from backend.');
+            const promptData = await promptResponse.json();
+
+            // 2. Call Gemini API to generate the dish details
+            subtitle.textContent = "Inventing a new delicious dish...";
+            const textPrompt = `${promptData.prompt}. Please respond with ONLY a valid JSON object in the format: {"name": "...", "description": "...", "price": ..., "category": "..."}`;
+            let chatHistory = [{ role: "user", parts: [{ text: textPrompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will provide this
+            const textApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const textResponse = await fetch(textApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!textResponse.ok) throw new Error(`Gemini API request failed with status ${textResponse.status}`);
+            const textResult = await textResponse.json();
+            
+            if (!textResult.candidates || !textResult.candidates[0].content || !textResult.candidates[0].content.parts[0]) {
+                throw new Error("Invalid response structure from Gemini API.");
+            }
+            
+            const rawText = textResult.candidates[0].content.parts[0].text;
+            let dishDetails;
+            
+            try {
+                const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                dishDetails = JSON.parse(cleanedText);
+            } catch (parseError) {
+                console.error("Original AI response:", rawText);
+                throw new Error("Failed to parse JSON from AI response.");
+            }
+
+            // 3. Call Imagen API to generate the dish image
+            subtitle.textContent = "Creating a mouth-watering photo of the dish...";
+            const imagePrompt = `A vibrant, appetizing, professional food photography shot of a dish called '${dishDetails.name}'. The dish is described as: '${dishDetails.description}'. Show it on a rustic cafe table, with bright, natural lighting.`;
+            const imagePayload = { instances: [{ prompt: imagePrompt }], parameters: { "sampleCount": 1 } };
+            const imageApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+            const imageResponse = await fetch(imageApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(imagePayload)
+            });
+            if (!imageResponse.ok) throw new Error(`Imagen API request failed with status ${imageResponse.status}`);
+            const imageResult = await imageResponse.json();
+
+            if (!imageResult.predictions || !imageResult.predictions[0].bytesBase64Encoded) {
+                throw new Error("Invalid response structure from Imagen API.");
+            }
+            const imageUrl = `data:image/png;base64,${imageResult.predictions[0].bytesBase64Encoded}`;
+
+            // 4. Render the final result
+            subtitle.textContent = "A unique dish, created just for today by our digital chef!";
+            container.innerHTML = `
+                <img src="${imageUrl}" alt="AI-generated image of ${dishDetails.name}" class="w-full md:w-1/3 h-48 md:h-full object-cover rounded-lg"/>
+                <div class="w-full md:w-2/3">
+                    <h3 class="text-2xl font-bold mb-2">${dishDetails.name}</h3>
+                    <p class="text-white/80 mb-4">${dishDetails.description}</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xl font-bold">₹${dishDetails.price}</span>
+                        <span class="text-xs font-semibold bg-pink-200 text-pink-800 px-3 py-1 rounded-full">${dishDetails.category}</span>
+                    </div>
+                </div>
+            `;
+
+        } catch (error) {
+            console.error("Full Error generating AI special:", error);
+            // **FIX**: Instead of showing an error, call the fallback function.
+            displayFallbackSpecial();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', generateAiSpecial);
+  </script>
+</body>
+</html>

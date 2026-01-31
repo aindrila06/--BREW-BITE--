@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Verify Email | BREW & BITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+        .card h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #FB8388;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .card p {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #555;
+            font-size: 15px;
+        }
+        .card input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 0.5em; /* Spreads out the numbers */
+            outline: none;
+        }
+        .card button {
+            width: 100%;
+            background-color: #FB8388;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .card button:hover {
+            background-color: #f1696f;
+        }
+    </style>
+</head>
+<body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div id="toast-container">
+            {% for category, message in messages %}
+                <div class="toast-card toast-{{ category }}">
+                    <p>{{ message }}</p>
+                    <button onclick="this.parentElement.remove();" class="toast-close-btn">&times;</button>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <style>
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            width: 300px; font-family: sans-serif;
+        }
+        .toast-card {
+            background-color: white; color: #333; padding: 15px; margin-bottom: 10px;
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid #6b7280;
+        }
+        .toast-card.toast-success { border-left-color: #22c55e; }
+        .toast-card.toast-error { border-left-color: #ef4444; }
+        .toast-close-btn {
+            background: none; border: none; color: #9ca3af; font-size: 20px;
+            cursor: pointer; padding: 0 5px;
+        }
+    </style>
+
+    <script>
+        const toastContainer = document.getElementById('toast-container');
+        if (toastContainer) {
+            setTimeout(() => {
+                toastContainer.style.transition = 'opacity 0.5s ease-out';
+                toastContainer.style.opacity = '0';
+                setTimeout(() => toastContainer.remove(), 500);
+            }, 5000); // 5 seconds
+        }
+    </script>
+    <div class="card">
+      <h2>Verify Your Email</h2>
+      <p>Enter the 6-digit code we sent to your email address.</p>
+      <form method="POST" action="{{ url_for('verify_otp') }}">
+        <input type="text" name="otp" placeholder="------" maxlength="6" required />
+        <button type="submit">Verify</button>
+      </form>
+    </div>
+
+</body>
+</html>

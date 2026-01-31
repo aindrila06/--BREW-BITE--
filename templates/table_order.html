@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dine-In Order | BREW & BITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+            color: #333;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-6">
+
+    <main class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-[#467B8D]">Place Your Dine-In Order</h1>
+            <p class="text-gray-600 mt-2">Confirm your order and table number below.</p>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-3 border-b pb-2">Order Summary</h2>
+            <div id="order-summary-container" class="space-y-2 text-gray-700">
+                </div>
+            <div id="total-summary" class="text-right font-bold text-lg mt-4 pt-2 border-t">
+                Total: ₹0
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-bold mb-4">Your Details</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="customer_name" class="block text-sm font-medium text-gray-700">Your Name</label>
+                    <input type="text" id="customer_name" value="{{ user_name or '' }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388]" required>
+                </div>
+                <div>
+                    <label for="table_number" class="block text-sm font-medium text-gray-700">Table Number</label>
+                    <input type="number" id="table_number" placeholder="e.g., 5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388]" required>
+                </div>
+                <button id="confirm-dine-in-btn" class="w-full bg-[#FB8388] text-white font-bold py-3 px-4 rounded-md hover:bg-[#f1696f] transition-colors">
+                    Confirm & Place Order
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // CHANGED HERE: Load from 'dineInCart' instead of 'cart'
+            const cart = JSON.parse(localStorage.getItem("dineInCart")) || [];
+            
+            // Also load the customer name saved from the menu page
+            const savedName = localStorage.getItem("dineInUserName") || "";
+            const nameInput = document.getElementById('customer_name');
+            if (!nameInput.value && savedName) {
+                nameInput.value = savedName;
+            }
+
+            const summaryContainer = document.getElementById('order-summary-container');
+            const totalElem = document.getElementById('total-summary');
+            const confirmButton = document.getElementById('confirm-dine-in-btn');
+
+            if (cart.length === 0) {
+                summaryContainer.innerHTML = '<p class="text-center text-gray-500">Your order is empty. Please add items from the menu.</p>';
+                totalElem.style.display = 'none';
+                confirmButton.disabled = true;
+                confirmButton.textContent = 'Your Cart is Empty';
+                confirmButton.style.backgroundColor = '#d1d5db';
+                confirmButton.style.cursor = 'not-allowed';
+            } else {
+                summaryContainer.innerHTML = cart.map(item => `
+                    <div class="flex justify-between">
+                        <span>${item.quantity} x ${item.name}</span>
+                        <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `).join('');
+                
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const gst = subtotal * 0.05; // 5% GST
+                const total = subtotal + gst;
+                totalElem.textContent = `Total (incl. GST): ₹${total.toFixed(2)}`;
+            }
+        });
+
+        document.getElementById('confirm-dine-in-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirm-dine-in-btn');
+            btn.disabled = true;
+            btn.textContent = 'Placing Order...';
+
+            // CHANGED HERE: Load from 'dineInCart'
+            const cart = JSON.parse(localStorage.getItem("dineInCart")) || [];
+            const customerName = document.getElementById('customer_name').value.trim();
+            const tableNumber = document.getElementById('table_number').value.trim();
+
+            if (!customerName || !tableNumber) {
+                alert('Please provide both your name and table number.');
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+                return;
+            }
+
+            const orderData = {
+                cart: cart,
+                customer_name: customerName,
+                table_number: tableNumber
+            };
+
+            try {
+                const response = await fetch('/api/confirm-dine-in-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.confirmation_url) {
+                    // CHANGED HERE: Clear 'dineInCart' on successful order
+                    localStorage.removeItem('dineInCart'); 
+                    localStorage.removeItem('dineInUserName'); // Also clear the saved name
+                    window.location.href = data.confirmation_url;
+                } else {
+                    alert('Order failed: ' + (data.error || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm & Place Order';
+                }
+            } catch (error) {
+                console.error("Error placing order:", error);
+                alert('An error occurred. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+            }
+        });
+    </script>
+
+</body>
+</html>

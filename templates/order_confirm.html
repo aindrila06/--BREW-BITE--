@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed | BREW & BITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .card h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #FB8388;
+      margin-bottom: 20px;
+    }
+    .card p {
+      font-size: 15px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 30px;
+    }
+    .card .checkmark {
+      font-size: 48px;
+      color: #44C267;
+      margin-bottom: 16px;
+    }
+    .card a.button {
+      display: inline-block;
+      margin: 10px 5px;
+      background-color: #FB8388;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 12px;
+      transition: background 0.3s ease;
+    }
+    .card a.button.secondary {
+        background-color: #5a96aa;
+    }
+    .card a.button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="checkmark">✔️</div>
+    <h2>Order Confirmed!</h2>
+    <p>Thank you for your order.<br>Your food is being prepared and will be ready shortly.</p>
+    
+    
+    
+    <a href="{{ url_for('feedback') }}" class="button secondary">Provide Feedback</a>
+    
+    <a href="{{ url_for('main_menu') }}" class="button">Back to Menu</a>
+  </div>
+
+</body>
+</html>

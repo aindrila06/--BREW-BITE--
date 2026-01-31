@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Display - Order Notifications</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #5a3e36; }
+        #log { border: 1px solid #ddd; height: 400px; overflow-y: scroll; padding: 10px; background-color: #fafafa; border-radius: 5px; }
+        .notification { padding: 10px; border-bottom: 1px solid #eee; font-size: 1.2em; }
+        .notification:last-child { border-bottom: none; }
+        .status { text-align: center; margin-top: 15px; font-weight: bold; }
+        #connection-status { color: #d9534f; }
+        /* Button Style */
+        #start-audio-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        #start-audio-btn:hover { background-color: #218838; }
+        #start-audio-btn:disabled { background-color: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Live Order Notifications</h1>
+        
+        <button id="start-audio-btn">🔊 Click to Start Audio Notifications</button>
+
+        <p class="status">Status: <span id="connection-status">Waiting to start...</span></p>
+        <div id="log">
+            </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const statusEl = document.getElementById('connection-status');
+        const startButton = document.getElementById('start-audio-btn');
+        const synth = window.speechSynthesis;
+
+        function speak(text) {
+            if (synth.speaking) {
+                console.error('SpeechSynthesis is already speaking.');
+                return;
+            }
+            if (text !== '') {
+                const utterThis = new SpeechSynthesisUtterance(text);
+                utterThis.onerror = function (event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                }
+                synth.speak(utterThis);
+            }
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch('/api/kitchen-notifications');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                
+                statusEl.textContent = 'Connected (Last check: ' + new Date().toLocaleTimeString() + ')';
+                statusEl.style.color = '#5cb85c';
+
+                if (data.notifications && data.notifications.length > 0) {
+                    data.notifications.forEach(notif => {
+                        console.log("New Notification:", notif.message);
+
+                        // 1. Announce it via speaker
+                        speak(notif.message);
+
+                        // 2. Add it to the display log
+                        const div = document.createElement('div');
+                        div.className = 'notification';
+                        div.textContent = `[${new Date().toLocaleTimeString()}] ${notif.message}`;
+                        log.prepend(div); // Add new notifications to the top
+                    });
+                }
+            } catch (error) {
+                console.error("Could not fetch notifications:", error);
+                statusEl.textContent = 'Error - Disconnected';
+                statusEl.style.color = '#d9534f';
+            }
+        }
+
+        // NEW: Event listener for the button
+        startButton.addEventListener('click', () => {
+            // A small "hack" to wake up the speech synthesis on some browsers
+            speak('Audio initialized.');
+
+            // Start polling for notifications ONLY after the user clicks the button
+            setInterval(fetchNotifications, 10000);
+
+            // Fetch immediately once
+            fetchNotifications();
+
+            // Disable the button and update the text
+            startButton.disabled = true;
+            startButton.textContent = '✅ Audio Active & Listening...';
+            statusEl.textContent = 'Connecting...';
+        });
+    </script>
+</body>
+</html>

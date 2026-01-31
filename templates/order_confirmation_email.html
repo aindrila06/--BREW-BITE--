@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .header { text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h1 { color: #FB8388; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        .align-right { text-align: right; }
+        .total-summary td { border-bottom: none; }
+        .grand-total td { border-top: 2px solid #333; font-weight: bold; font-size: 1.2em; }
+        .footer { text-align: center; font-size: 0.9em; color: #777; margin-top: 20px; }
+        /* Style for the button link */
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #FB8388;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Brew & Bite</h1>
+            <h2>Order Confirmed!</h2>
+        </div>
+        <p>Hi {{ order.customer_name }},</p>
+        <p>Thank you for your order! Here are the details:</p>
+        <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+        {% if order.address %}
+            <p><strong>Shipping to:</strong> {{ order.address }}</p>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th class="align-right">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="align-right">₹{{ (item.price * item.quantity)|round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-summary">
+                    <td colspan="2">Subtotal</td>
+                    <td class="align-right">₹{{ (order.total / 1.05)|round(2) }}</td>
+                </tr>
+                <tr class="total-summary">
+                    <td colspan="2">GST (5%)</td>
+                    <td class="align-right">₹{{ ((order.total / 1.05) * 0.05)|round(2) }}</td>
+                </tr>
+                <tr class="grand-total">
+                    <td colspan="2">Grand Total</td>
+                    <td class="align-right">₹{{ order.total|round(2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ receipt_url }}" class="button" style="background-color: #467B8D; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                View or Download PDF Receipt
+            </a>
+        </div>
+        <div class="footer">
+            <p>We're now preparing your order. Thanks for choosing Brew & Bite!</p>
+        </div>
+    </div>
+</body>
+</html>

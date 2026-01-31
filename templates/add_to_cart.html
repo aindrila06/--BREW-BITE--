@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart | BREW & BITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(to bottom, #467B8D, #FB8388);
+      color: white;
+      min-height: 100vh;
+    }
+    .card {
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+    }
+    .btn {
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background-color: #fff;
+      color: #FB8388;
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="px-6 py-10">
+
+  <header class="w-full px-6 py-4 border-b border-white/50 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">🛒 Your Cart</h1>
+    <a href="{{ url_for('main_menu') }}" class="text-white underline hover:text-gray-200">Back to Menu</a>
+  </header>
+
+  <main class="max-w-4xl mx-auto mt-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
+    
+    <section class="lg:col-span-2">
+      <div id="cartItems" class="space-y-4">
+        </div>
+  
+      <div id="totalsCard" class="mt-8 card text-white" style="display: none;">
+        <p id="subtotal" class="mb-2">Subtotal: ₹0</p>
+        <p id="gst" class="mb-2">GST (5%): ₹0</p>
+        <hr class="border-white/20 my-2">
+        <p id="total" class="text-xl font-bold">Total: ₹0</p>
+      </div>
+  
+      <div id="checkout-section" class="mt-8" style="display: none;">
+        <a href="{{ url_for('online_order_page') }}" class="btn btn-primary">Proceed to Checkout</a>
+      </div>
+    </section>
+
+    <aside id="suggestions-section" class="lg:col-span-1">
+      <h2 class="text-xl font-bold mb-4">You Might Also Like...</h2>
+      <div id="suggestionsContainer" class="space-y-4">
+        <p class="text-white/70">Loading recommendations...</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <script>
+    function addItem(itemObject) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const existingItem = cart.find(cartItem => cartItem.id === itemObject.id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            itemObject.quantity = 1;
+            cart.push(itemObject);
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+        loadCart();
+    }
+
+    async function fetchAndDisplaySuggestions() {
+        const container = document.getElementById('suggestionsContainer');
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const cartItemNames = cart.map(item => item.name);
+
+        try {
+            const response = await fetch('/api/cart-suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: cartItemNames })
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok for suggestions.');
+            
+            const data = await response.json();
+
+            if (!data.suggestions || data.suggestions.length === 0) {
+                container.innerHTML = '<p class="text-white/50 text-sm">No specific suggestions for your cart!</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+
+            data.suggestions.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card flex items-center justify-between text-sm p-3';
+                const itemJsonString = JSON.stringify(item).replace(/'/g, "&apos;");
+
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold">${item.name}</p>
+                        <p class="text-white/80">₹${item.price}</p>
+                    </div>
+                    <button onclick='addItem(${itemJsonString})' class="bg-white/20 text-white font-bold text-xs py-1 px-3 rounded-full hover:bg-white/30" title="Add ${item.name} to cart">+</button>
+                `;
+                container.appendChild(div);
+            });
+
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+            container.innerHTML = '<p class="text-white/50 text-sm">Could not load recommendations.</p>';
+        }
+    }
+
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const container = document.getElementById("cartItems");
+      const subtotalElem = document.getElementById("subtotal");
+      const gstElem = document.getElementById("gst");
+      const totalElem = document.getElementById("total");
+      const totalsCard = document.getElementById('totalsCard');
+      const checkoutSection = document.getElementById('checkout-section');
+
+      container.innerHTML = "";
+      let subtotal = 0;
+
+      if (cart.length === 0) {
+        container.innerHTML = '<p class="text-white/70 card text-center">Your cart is empty. Go back to the menu to add items!</p>';
+        totalsCard.style.display = 'none';
+        checkoutSection.style.display = 'none';
+      } else {
+        totalsCard.style.display = 'block';
+        checkoutSection.style.display = 'block';
+        cart.forEach((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          subtotal += itemTotal;
+          const div = document.createElement("div");
+          div.className = "card flex justify-between items-center";
+          div.innerHTML = `
+            <div>
+              <h3 class="text-lg font-semibold">${item.name}</h3>
+              <p class="text-sm">₹${item.price} x ${item.quantity} = ₹${itemTotal.toFixed(2)}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="updateQuantity(${index}, -1)" class="font-bold text-lg">-</button>
+                <span class="font-bold">${item.quantity}</span>
+                <button onclick="updateQuantity(${index}, 1)" class="font-bold text-lg">+</button>
+                <button onclick="removeItem(${index})" class="text-red-300 hover:underline text-xs">Remove</button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      const gst = subtotal * 0.05; // 5% GST on the frontend for display purposes
+      const total = subtotal + gst;
+
+      subtotalElem.textContent = `Subtotal: ₹${subtotal.toFixed(2)}`;
+      gstElem.textContent = `GST (5%): ₹${gst.toFixed(2)}`;
+      totalElem.textContent = `Total: ₹${total.toFixed(2)}`;
+      
+      fetchAndDisplaySuggestions();
+    }
+
+    function updateQuantity(index, change) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        if (cart[index]) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+        loadCart();
+    }
+
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+    }
+
+    window.onload = loadCart;
+  </script>
+</body>
+</html>

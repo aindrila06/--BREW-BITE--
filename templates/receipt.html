@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Receipt | BREW & BITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f6f6f6; padding: 40px; color: #333; }
+    .receipt { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); }
+    h2 { color: #FB8388; text-align: center; margin-bottom: 10px; }
+    .text-center { text-align: center; }
+    .subheading { color: #888; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    .total-row td { border-bottom: none; font-weight: bold; }
+    .grand-total td { font-size: 1.1em; padding-top: 15px; border-top: 2px solid #333; }
+    .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #FB8388; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-right: 10px; }
+    .btn:hover { background-color: #f1696f; }
+  </style>
+</head>
+<body>
+  <div class="receipt" id="receipt-content">
+    <h2>BREW & BITE Receipt</h2>
+    <p class="text-center subheading">Order ID: {{ order.order_id }} | {{ order_type }}</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ (item.price * item.quantity)|round(2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+            <td colspan="2">Subtotal</td>
+            <td>₹{{ subtotal|round(2) }}</td>
+        </tr>
+        <tr class="total-row">
+            <td colspan="2">GST (18%)</td>
+            <td>₹{{ gst|round(2) }}</td>
+        </tr>
+        <tr class="grand-total">
+            <td colspan="2">Grand Total</td>
+            <td>₹{{ order.total|round(2) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p class="text-center" style="margin-top: 20px; color: #555;">Thank you for your order, {{ order.customer_name }}!</p>
+
+    <div>
+        <button class="btn" onclick="printReceipt()">Print</button>
+        <button class="btn" onclick="downloadReceipt()">Download PDF</button>
+        <a href="{{ url_for('main_menu') }}" class="btn">Back to Menu</a>
+    </div>
+  </div>
+
+  <script>
+    function printReceipt() {
+      window.print();
+    }
+
+    function downloadReceipt() {
+      const element = document.getElementById('receipt-content');
+      const opt = {
+          margin:       0.5,
+          filename:     'brew-and-bite-receipt-{{ order.order_id }}.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
+</body>
+</html>

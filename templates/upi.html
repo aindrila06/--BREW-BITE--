@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UPI Payment | BREW & BITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+      color: white;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .heading {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .input-field {
+      background: #ffffff15;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      padding: 15px;
+      width: 100%;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .input-field::placeholder {
+      color: #dddddd;
+    }
+    .button {
+      background-color: #ffffff22;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      color: white;
+      border: 1px solid #CCE8DE;
+    }
+    .button:hover {
+      background-color: #CCE8DE;
+      color: #467B8D;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="heading">UPI Payment</div>
+    <form id="upiForm">
+      <input type="text" class="input-field" placeholder="Enter your UPI ID (e.g. name@bank)" required />
+      <button type="submit" class="button">Pay Now</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("upiForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      window.location.href = "{{ url_for('order_confirm') }}";
+    });
+  </script>
+</body>
+</html>

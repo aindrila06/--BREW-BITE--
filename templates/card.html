@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Card Payment | BREW & BITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #FB8388;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      background-color: #FB8388;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #f1696f;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Card Payment</h2>
+    <form id="cardForm">
+      <input type="text" placeholder="Card Number" required />
+      <input type="text" placeholder="Card Holder Name" required />
+      <input type="text" placeholder="Expiry Date (MM/YY)" required />
+      <input type="password" placeholder="CVV" required />
+      <button type="submit">Pay Now</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("cardForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      window.location.href = "{{ url_for('order_confirm') }}";
+    });
+  </script>
+</body>
+</html>

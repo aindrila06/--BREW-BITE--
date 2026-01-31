@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | BREW & BITE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f4f7f6;
+      }
+      .sentiment-positive { border-left: 4px solid #22c55e; background-color: #f0fdf4; }
+      .sentiment-negative { border-left: 4px solid #ef4444; background-color: #fef2f2; }
+      .sentiment-neutral { border-left: 4px solid #6b7280; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <div>
+                <a href="{{ url_for('kitchen_display') }}" class="text-sm font-medium text-gray-600 hover:text-[#009963] mr-4">Kitchen Display</a>
+                <a href="{{ url_for('home') }}" class="text-sm font-medium text-gray-600 hover:text-[#009963] mr-4">Back to Home</a>
+                <a href="{{ url_for('logout') }}" class="text-sm font-medium text-red-600 hover:text-red-800">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <section class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Customer Feedback Analysis</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-green-100 text-green-800 p-6 rounded-lg">
+                        <h2 class="text-4xl font-bold">{{ positive_count }}</h2>
+                        <p class="font-semibold">Positive Reviews</p>
+                    </div>
+                    <div class="bg-red-100 text-red-800 p-6 rounded-lg">
+                        <h2 class="text-4xl font-bold">{{ negative_count }}</h2>
+                        <p class="font-semibold">Negative Reviews</p>
+                    </div>
+                    <div class="bg-gray-200 text-gray-800 p-6 rounded-lg">
+                        <h2 class="text-4xl font-bold">{{ neutral_count }}</h2>
+                        <p class="font-semibold">Neutral Reviews</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Latest Feedback ({{ total_count }} total)</h3>
+                    <div class="space-y-4 max-h-[40vh] overflow-y-auto">
+                        {% if feedback_items and total_count > 0 %}
+                            {% for item in feedback_items %}
+                                <div class="p-4 rounded-md sentiment-{{ item.sentiment | lower }}">
+                                    <p class="font-semibold text-gray-800">"{{ item.text }}"</p>
+                                    <div class="text-sm text-gray-500 mt-2">
+                                        <span>Sentiment: <strong class="capitalize">{{ item.sentiment }}</strong></span>
+                                        <span class="mx-2">|</span>
+                                        <span>{{ item.timestamp }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-gray-500">No feedback has been submitted yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-1">
+            <section class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Recent Table Bookings</h2>
+                <div class="space-y-4 max-h-[75vh] overflow-y-auto">
+                    {% if booking_items %}
+                        {% for booking in booking_items %}
+                            <div id="booking-{{ booking.booking_id }}" class="p-4 rounded-md bg-blue-50 border-l-4 border-blue-500">
+                                <div class="flex justify-between items-start">
+                                    <p class="font-bold text-blue-800">{{ booking.booking_id }}</p>
+                                    <a href="#" onclick="removeBooking('{{ booking.booking_id }}')" class="text-xs font-semibold text-red-500 hover:underline">Remove</a>
+                                </div>
+                                <div class="text-sm text-gray-700 mt-1">
+                                    <p><strong>Table:</strong> {{ booking.table_name }}</p>
+                                    <p><strong>Guests:</strong> {{ booking.party_size }}</p>
+                                    <p><strong>Date:</strong> {{ booking.date }} at {{ booking.time }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500">No table bookings have been made yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        function removeBooking(bookingId) {
+            // Ask for confirmation before deleting
+            if (confirm('Are you sure you want to remove this booking? This action cannot be undone.')) {
+                // Use the Fetch API to send a DELETE request to our new endpoint
+                fetch(`/api/admin/delete-booking/${bookingId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // If the backend confirms success, remove the booking card from the page
+                        const bookingCard = document.getElementById(`booking-${bookingId}`);
+                        if (bookingCard) {
+                            bookingCard.style.transition = 'opacity 0.5s';
+                            bookingCard.style.opacity = '0';
+                            setTimeout(() => bookingCard.remove(), 500);
+                        }
+                    } else {
+                        // If there was an error, alert the admin
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while trying to remove the booking.');
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>

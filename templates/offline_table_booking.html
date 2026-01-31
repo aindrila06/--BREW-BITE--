@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offline Table Booking - Brew & Bite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+      body { font-family: 'Plus Jakarta Sans', sans-serif; }
+      .table-shape {
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
+          stroke-width: 2px;
+          stroke: #9ca3af;
+          fill: #f3f4f6;
+      }
+      .table-shape.available { fill: #dbfce8; stroke: #16a34a; }
+      .table-shape.recommended { fill: #16a34a; stroke: #14532d; stroke-width: 3px; }
+      .table-shape.selected { fill: #0D1C17; stroke: #0D1C17; stroke-width: 3px; }
+      .table-shape.unavailable { fill: #e5e7eb; stroke: #d1d5db; cursor: not-allowed; }
+      .table-text { font-size: 14px; font-weight: 600; fill: #374151; pointer-events: none; }
+      .table-shape.selected + .table-text, .table-shape.recommended + .table-text { fill: white; }
+  </style>
+</head>
+<body class="bg-[#F7FCFA] font-sans text-[#0D1C17]">
+
+  <nav class="w-full border-b border-[#E5E8EB] px-10 py-3 flex justify-between items-center bg-white">
+    <a href="{{ url_for('home') }}" class="flex items-center gap-4">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="w-8 h-8"/>
+      <h1 class="text-xl font-bold">BREW & BITE</h1>
+    </a>
+    <div class="flex gap-8 text-sm font-medium">
+      <a href="{{ url_for('dine_in_menu') }}" class="hover:text-[#009963]">Menu</a>
+      <a href="{{ url_for('home') }}" class="hover:text-[#009963]">Home</a>
+    </div>
+  </nav>
+
+  <main class="max-w-screen-xl mx-auto px-6 py-10">
+    <div class="text-center mb-10">
+        <h2 class="text-4xl font-extrabold mb-2">Book Your Table</h2>
+        <p class="text-gray-500">Select your preferences and let our AI find the perfect spot for you.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl border border-[#E5E8EB] shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Your Details</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="date" class="block mb-2 font-medium text-sm">Select Date</label>
+                        <input type="date" id="date" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#009963] focus:outline-none" />
+                    </div>
+                    <div>
+                        <label for="time" class="block mb-2 font-medium text-sm">Select Time</label>
+                        <input type="time" id="time" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#009963] focus:outline-none" />
+                    </div>
+                    <div>
+                        <label for="party_size" class="block mb-2 font-medium text-sm">Party Size</label>
+                        <input type="number" id="party_size" min="1" max="20" value="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#009963] focus:outline-none" />
+                    </div>
+                    <div>
+                        <label for="preference" class="block mb-2 font-medium text-sm">Seating Preference</label>
+                        <select id="preference" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#009963] focus:outline-none bg-white">
+                            <option value="any">Any Available</option>
+                            <option value="window">Window Seat</option>
+                            <option value="quiet">Quiet Corner</option>
+                            <option value="social">Social Area</option>
+                            <option value="group">Good for Groups</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="booking-email" class="block mb-2 font-medium text-sm">Your Email Address</label>
+                        <input type="email" id="booking-email" placeholder="Enter your email for confirmation" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#009963] focus:outline-none" required />
+                    </div>
+                    </div>
+            </div>
+
+            <div id="booking-confirmation" class="hidden mt-6 text-center bg-white p-6 rounded-xl border-2 border-green-500 shadow-lg">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Booking Confirmed!</h3>
+                <p class="text-gray-600 mb-4">Your booking for <strong id="confirm-table-name"></strong> is confirmed. Your booking ID is:</p>
+                <div id="booking-id" class="text-3xl font-extrabold text-[#009963] tracking-widest bg-gray-100 py-3 rounded-lg">BNB-0000</div>
+                <p class="text-sm text-gray-500 mt-4">A confirmation email has been sent. Please use this code to check in.</p>
+            </div>
+        </div>
+
+        <div id="booking-stage" class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-xl border border-[#E5E8EB] shadow-sm">
+                <h3 class="text-xl font-bold mb-4">Select a Table</h3>
+                <div id="table-layout-container" class="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
+                    <svg id="restaurant-layout" viewBox="0 0 400 300" class="w-full h-auto">
+                        <rect x="1" y="1" width="398" height="298" fill="none" stroke="#d1d5db" stroke-width="2" />
+                        <rect x="280" y="10" width="110" height="80" fill="#e5e7eb" /><text x="335" y="55" text-anchor="middle" class="text-xs fill-gray-500">Kitchen</text>
+                        <rect x="10" y="10" width="80" height="50" fill="#f3f4f6" /><text x="50" y="40" text-anchor="middle" class="text-xs fill-gray-500">Entrance</text>
+                        <g class="table-group" data-table-id="1"><rect x="20" y="80" width="50" height="50" rx="5" class="table-shape" /><text x="45" y="110" text-anchor="middle" class="table-text">T1</text></g>
+                        <g class="table-group" data-table-id="2"><rect x="20" y="150" width="50" height="50" rx="5" class="table-shape" /><text x="45" y="180" text-anchor="middle" class="table-text">T2</text></g>
+                        <g class="table-group" data-table-id="3"><rect x="20" y="220" width="80" height="50" rx="5" class="table-shape" /><text x="60" y="250" text-anchor="middle" class="table-text">T3</text></g>
+                        <g class="table-group" data-table-id="4"><rect x="120" y="120" width="80" height="50" rx="5" class="table-shape" /><text x="160" y="150" text-anchor="middle" class="table-text">T4</text></g>
+                        <g class="table-group" data-table-id="5"><rect x="120" y="200" width="100" height="60" rx="5" class="table-shape" /><text x="170" y="235" text-anchor="middle" class="table-text">T5</text></g>
+                        <g class="table-group" data-table-id="6"><rect x="280" y="150" width="100" height="80" rx="5" class="table-shape" /><text x="330" y="195" text-anchor="middle" class="table-text">T6</text></g>
+                    </svg>
+                </div>
+                <div id="table-list-info" class="mt-4 text-center text-gray-600">
+                    Please select your details to see recommendations.
+                </div>
+                <button id="book-button" class="mt-6 w-full bg-[#009963] text-white font-bold px-8 py-3 rounded-lg shadow-md hover:bg-[#007a50] transition disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    Book Selected Table
+                </button>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <script>
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('time');
+    const partySizeInput = document.getElementById('party_size');
+    const preferenceInput = document.getElementById('preference');
+    const emailInput = document.getElementById('booking-email'); // MODIFICATION: Get email input
+    const bookButton = document.getElementById('book-button');
+    const tableLayout = document.getElementById('restaurant-layout');
+    const tableInfo = document.getElementById('table-list-info');
+    const bookingStage = document.getElementById('booking-stage');
+    const confirmationStage = document.getElementById('booking-confirmation');
+    const bookingIdElem = document.getElementById('booking-id');
+    const confirmTableNameElem = document.getElementById('confirm-table-name');
+
+    let selectedTableId = null;
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+
+    [dateInput, timeInput, partySizeInput, preferenceInput].forEach(input => {
+        input.addEventListener('change', fetchTableRecommendations);
+    });
+
+    async function fetchTableRecommendations() {
+        const date = dateInput.value;
+        const time = timeInput.value;
+        const party_size = partySizeInput.value;
+        const preference = preferenceInput.value;
+        selectedTableId = null;
+        bookButton.disabled = true;
+        if (!date || !time || !party_size) {
+            resetTableLayout('Please select a date, time, and party size.');
+            return;
+        }
+        resetTableLayout('Finding best tables for you...');
+        try {
+            const response = await fetch('/api/table-recommendations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, time, party_size, preference })
+            });
+            if (!response.ok) throw new Error('Failed to fetch recommendations');
+            const data = await response.json();
+            updateTableLayout(data.available_tables);
+        } catch (error) {
+            console.error('Error fetching tables:', error);
+            resetTableLayout('Could not find tables. Please try again.');
+        }
+    }
+    
+    function resetTableLayout(message) {
+        tableInfo.textContent = message;
+        tableLayout.querySelectorAll('.table-shape').forEach(shape => {
+            shape.classList.remove('available', 'recommended', 'selected');
+            shape.classList.add('unavailable');
+        });
+    }
+
+    function updateTableLayout(availableTables) {
+        if (availableTables.length === 0) {
+            resetTableLayout('No tables available for your selection. Please try a different time or date.');
+            return;
+        }
+        const availableIds = availableTables.map(t => t.id);
+        tableLayout.querySelectorAll('.table-group').forEach(group => {
+            const tableId = parseInt(group.dataset.tableId);
+            const shape = group.querySelector('.table-shape');
+            shape.classList.remove('available', 'recommended', 'selected', 'unavailable');
+            if (availableIds.includes(tableId)) {
+                shape.classList.add('available');
+                if (tableId === availableTables[0].id) {
+                    shape.classList.add('recommended');
+                }
+            } else {
+                shape.classList.add('unavailable');
+            }
+        });
+        const recommendedTable = availableTables[0];
+        tableInfo.innerHTML = `Our AI recommends <strong class="text-[#009963]">${recommendedTable.name}</strong> for you. Or, select another available table.`;
+    }
+
+    tableLayout.querySelectorAll('.table-group').forEach(group => {
+        group.addEventListener('click', () => {
+            const shape = group.querySelector('.table-shape');
+            if (shape.classList.contains('unavailable')) return;
+            tableLayout.querySelectorAll('.table-shape.selected').forEach(s => s.classList.remove('selected'));
+            shape.classList.add('selected');
+            selectedTableId = parseInt(group.dataset.tableId);
+            bookButton.disabled = false;
+        });
+    });
+
+    // MODIFICATION START: Updated Book Button Logic
+    bookButton.addEventListener('click', async () => {
+        const userEmail = emailInput.value.trim();
+
+        if (!selectedTableId) {
+            alert('Please select a table first.');
+            return;
+        }
+        if (!userEmail) {
+            alert('Please enter your email address for confirmation.');
+            emailInput.focus();
+            return;
+        }
+
+        const bookingDetails = {
+            table_id: selectedTableId,
+            date: dateInput.value,
+            time: timeInput.value,
+            party_size: partySizeInput.value,
+            user_email: userEmail // Send the user's email to the backend
+        };
+
+        try {
+            const response = await fetch('/api/book-table', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bookingDetails)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                bookingIdElem.textContent = data.booking_id;
+                confirmTableNameElem.textContent = data.table_name;
+                bookingStage.classList.add('hidden');
+                confirmationStage.classList.remove('hidden');
+            } else {
+                alert('Booking failed: ' + data.error);
+                fetchTableRecommendations();
+            }
+        } catch (error) {
+            console.error('Booking error:', error);
+            alert('An error occurred while booking. Please try again.');
+        }
+    });
+    // MODIFICATION END
+  </script>
+</body>
+</html>

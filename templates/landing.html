@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BREW & BITE | Welcome</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.05;
+      z-index: 0;
+      width: 600px;
+      max-width: 90%;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+      padding: 20px;
+      z-index: 1;
+    }
+
+    .logo-img {
+      width: 120px;
+      margin: 0 auto 20px auto;
+      display: block;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 800;
+      margin-bottom: 30px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    a.main-option {
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      padding: 14px 30px;
+      border-radius: 999px;
+      transition: all 0.3s ease;
+    }
+
+    a.main-option:hover {
+      background: white;
+      color: #467B8D;
+    }
+    
+    /* NEW: Admin Button Style */
+    .admin-button {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.3s ease;
+        z-index: 10;
+    }
+    .admin-button:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Watermark -->
+  <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BREW & BITE Logo" class="background-logo">
+
+  <div class="container">
+    <!-- Logo on Top -->
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BREW & BITE" class="logo-img">
+    
+    <h1>Welcome to BREW & BITE</h1>
+    <div class="options">
+      <a href="{{ url_for('signup') }}" class="main-option">Order Online</a>
+      <a href="{{ url_for('offline_table_booking') }}" class="main-option">Dine-In</a>
+    </div>
+  </div>
+
+  <!-- NEW: Admin Access Button -->
+  <a href="{{ url_for('admin_login') }}" class="admin-button">Admin Access</a>
+
+</body>
+</html>

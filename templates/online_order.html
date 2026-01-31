@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Checkout | BREW & BITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(180deg, #467B8D 0%, #FB8388 100%);
+            color: #333;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-6">
+
+    <main class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-[#467B8D]">Complete Your Order</h1>
+            <p class="text-gray-600 mt-2">Please provide your details for delivery.</p>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-3 border-b pb-2">Order Summary</h2>
+            <div id="order-summary-container" class="space-y-2 text-gray-700">
+                </div>
+            <div id="total-summary" class="text-right font-bold text-lg mt-4 pt-2 border-t">
+                Total: ₹0
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-bold mb-4">Delivery Details</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="customer_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="customer_name" value="{{ user_name or '' }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388]" required>
+                </div>
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Delivery Address</label>
+                    <textarea id="address" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#FB8388] focus:border-[#FB8388]" required></textarea>
+                </div>
+                <button id="confirm-order-btn" class="w-full bg-[#FB8388] text-white font-bold py-3 px-4 rounded-md hover:bg-[#f1696f] transition-colors">
+                    Confirm & Place Order
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const summaryContainer = document.getElementById('order-summary-container');
+            const totalElem = document.getElementById('total-summary');
+            const confirmButton = document.getElementById('confirm-order-btn');
+
+            if (cart.length === 0) {
+                summaryContainer.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
+                totalElem.style.display = 'none';
+                confirmButton.disabled = true;
+                confirmButton.textContent = 'Your Cart is Empty';
+                confirmButton.style.backgroundColor = '#d1d5db'; // gray-300
+                confirmButton.style.cursor = 'not-allowed';
+            } else {
+                summaryContainer.innerHTML = cart.map(item => `
+                    <div class="flex justify-between">
+                        <span>${item.quantity} x ${item.name}</span>
+                        <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `).join('');
+                
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const gst = subtotal * 0.05; // 5% GST
+                const total = subtotal + gst;
+                totalElem.textContent = `Total (incl. GST): ₹${total.toFixed(2)}`;
+            }
+        });
+
+        document.getElementById('confirm-order-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirm-order-btn');
+            btn.disabled = true;
+            btn.textContent = 'Placing Order...';
+
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const customerName = document.getElementById('customer_name').value.trim();
+            const address = document.getElementById('address').value.trim();
+
+            if (!customerName || !address) {
+                alert('Please fill in all delivery details.');
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+                return;
+            }
+
+            const orderData = {
+                cart: cart,
+                customer_name: customerName,
+                address: address
+            };
+
+            try {
+                const response = await fetch('/api/confirm-online-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const data = await response.json();
+                
+                // This is the corrected logic that fixes the BuildError
+                if (data.success && data.confirmation_url) {
+                    localStorage.removeItem('cart'); // Clear cart on successful order
+                    // Redirect to the specific URL the server gave us
+                    window.location.href = data.confirmation_url;
+                } else {
+                    alert('Order failed: ' + (data.error || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm & Place Order';
+                }
+            } catch (error) {
+                console.error("Error placing order:", error);
+                alert('An error occurred. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Place Order';
+            }
+        });
+    </script>
+
+</body>
+</html>
