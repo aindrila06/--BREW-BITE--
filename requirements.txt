@@ -110,7 +110,7 @@ python-dotenv==1.1.1
 python-json-logger==3.3.0
 pyttsx3==2.99
 pytz==2025.2
-pywin32==311
+
 pywinpty==3.0.0
 PyYAML==6.0.2
 pyzmq==27.1.0
@@ -153,3 +153,4 @@ webcolors==24.11.1
 webencodings==0.5.1
 websocket-client==1.8.0
 Werkzeug==3.1.3
+
