@@ -19,7 +19,7 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'a_super_secret_key_for_your
 
 
 # --- Database Configuration ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafe.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/cafe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 with app.app_context():
@@ -670,3 +670,4 @@ if __name__ == '__main__':
         db.create_all()
 
     app.run(debug=True)
+
